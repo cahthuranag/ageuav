@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from deep import db_to_linear
-from deep import classifier_with_snr,get_data
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
 beta = np.array([750, 500, 300, 300])
@@ -10,15 +8,8 @@ neta_L = np.array([0.1, 1, 1.6, 2.3])
 neta_NL = np.array([21, 20, 23, 34])
 symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 250
-#H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
-H = np.concatenate((np.arange(10, 101, 20), np.arange(100, 700, 100)))
-# Load the dataset
-train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
 
-x_train, y_train = get_data(train_folder)
-x_test, y_test = get_data(test_folder)
-
+H = np.concatenate((np.arange(10, 101, 8), np.arange(100, 3 * D + 1, 25)))
 
 C_a = np.array([
     [9.34e-1, 2.30e-1, -2.25e-3, 1.86e-5],
@@ -80,9 +71,8 @@ for f in range(4):
         alpha_NL[j] = 1 / 10**(log_alpha_NL[j] / 10)
         alpha_1[j] = alpha_L[j] * t + alpha_NL[j] * (1 - t)
         l_gain = alpha_1[j] * Pw / No
-        snr_db = 10 * np.log10(l_gain)
-        acuuracy = classifier_with_snr(snr_db, x_train, y_train, x_test, y_test)
-        Approx1[f, j] = acuuracy
+        snr_db=10*np.log10(l_gain)
+        Approx1[f, j] = snr_db
 
 plt.plot(H, Approx1[0, :], 'g--o', label='Suburban')
 plt.plot(H, Approx1[1, :], 'r--*', label='Urban')

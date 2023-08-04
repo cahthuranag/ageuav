@@ -31,14 +31,9 @@ def get_data(folder):
 def db_to_linear(snr_db):
     return 10 ** (snr_db / 10)
 
-def classifier_with_snr(snr_value_db, epochs=20, batch_size=128):
-    # Load the dataset
-    train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-    test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
-    
-    x_train, y_train = get_data(train_folder)
-    x_test, y_test = get_data(test_folder)
-
+def classifier_with_snr(snr_value_db, x_train, y_train, x_test, y_test):
+    epochs=20
+    batch_size=128
     # Normalize the images
     x_train = x_train.astype('float32') / 255.
     x_test = x_test.astype('float32') / 255.
