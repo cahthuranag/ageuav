@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from deep import db_to_linear
+from deep import evaluate_classifier_with_snr
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
 beta = np.array([750, 500, 300, 300])
@@ -72,6 +74,8 @@ for f in range(4):
         alpha_NL[j] = 1 / 10**(log_alpha_NL[j] / 10)
         alpha_1[j] = alpha_L[j] * t + alpha_NL[j] * (1 - t)
         l_gain = alpha_1[j] * Pw / No
+        snr_db = 10 * np.log10(l_gain)
+        acuur = evaluate_classifier_with_snr(snr_db)
         Approx1[f, j] = l_gain
 
 plt.plot(H, Approx1[0, :], 'g--o', label='Suburban')
