@@ -72,7 +72,9 @@ def calculate_age(erov_s):
     return age_theory, age_simulation
 
 # Example usage:
+"""
 erov_s = 0
 age_theory, age_simulation = calculate_age(erov_s)
 print("Age Theory:", age_theory)
 print("Age Simulation:", age_simulation)
+"""

@@ -13,6 +13,7 @@ import seaborn as sns
 from keras.layers import BatchNormalization
 from tensorflow.keras.layers import Dropout
 from keras import backend as K
+tf.random.set_seed(3)
 
 def db_to_linear(snr_db):
     return 10 ** (snr_db / 10)
@@ -100,7 +101,7 @@ def main():
     for snr_value_db in snr_values_db:
         classifier_model = build_autoencoder_classifier(snr_value_db)
 
-        classifier_model.fit(x_train, y_train, epochs=150, batch_size=32, validation_data=(x_test, y_test))
+        classifier_model.fit(x_train, y_train, epochs=20, batch_size=512, validation_data=(x_test, y_test))
 
         _, classifier_test_accuracy = evaluate_classifier(classifier_model, x_test, y_test)
         accuracy_results.append(classifier_test_accuracy)

@@ -13,7 +13,7 @@ import seaborn as sns
 from keras.layers import BatchNormalization
 from tensorflow.keras.layers import Dropout
 from keras import backend as K
-tf.random.set_seed(3)
+
 def db_to_linear(snr_db):
     return 10 ** (snr_db / 10)
 
@@ -38,14 +38,13 @@ def build_autoencoder_classifier(snr_db):
     tx_power = 1
     input_img = Input(shape=(128, 128, 3))
 
-    encoded = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
+    encoded = Conv2D(16, (3, 3), activation='relu', padding='same')(input_img)
     encoded = MaxPooling2D((2, 2), padding='same')(encoded)
-    encoded = Conv2D(64, (3, 3), activation='relu', padding='same')(encoded)
+    encoded = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
     encoded = MaxPooling2D((2, 2), padding='same')(encoded)
     encoded = Flatten()(encoded)
     encoded = Dropout(0.5)(encoded)
-    encoded = Dense(128, activation='relu')(encoded)
-    encoded = BatchNormalization()(encoded)
+    encoded = Dense(16, activation='linear')(encoded)
     encoded = Lambda(lambda x: x / np.sqrt(tx_power))(encoded)
 
     snr_value_linear = db_to_linear(snr_db)
@@ -55,10 +54,11 @@ def build_autoencoder_classifier(snr_db):
     encoder = Model(inputs=input_img, outputs=encoded_with_awgn)
 
     classifier_input = encoder.output
-    classifier_output = Dense(128, activation='relu')(classifier_input)
-    classifier_output = Dense(1, activation='sigmoid')(classifier_output)  # Use 'sigmoid' for binary classification
+    classifier_output = Dense(16, activation='relu')(classifier_input)
+    #classifier_output = Flatten()(classifier_input)
+    classifier_output = Dense(2, activation='softmax')(classifier_output)
     classifier_model = Model(inputs=encoder.input, outputs=classifier_output)
-    classifier_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # Use 'binary_crossentropy' for binary classification
+    classifier_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return classifier_model
 
 def evaluate_classifier(classifier_model, x_test, y_test):
@@ -85,8 +85,8 @@ def plot_accuracy_vs_snr(snr_values_db, accuracy_results):
 
 def main():
     train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-    test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
-    #test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
+    #test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+    test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
     x_train, y_train = get_data(train_folder)
     x_test, y_test = get_data(test_folder)
@@ -94,7 +94,7 @@ def main():
     x_train = x_train.astype('float32') / 255.
     x_test = x_test.astype('float32') / 255.
 
-    snr_values_db = np.linspace(-10, 20, num=5)  # SNR values from 0 to 20 dB with 11 steps
+    snr_values_db = np.linspace(-20, 20, num=3)  # SNR values from 0 to 20 dB with 11 steps
 
     accuracy_results = []
     for snr_value_db in snr_values_db:
