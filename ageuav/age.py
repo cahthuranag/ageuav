@@ -25,11 +25,11 @@ def av_age_func(v, T, lambha):
         av_age = np.trapz(age, times) / max(times)
     return av_age
 
-def calculate_age(erov_s):
-    serv = 1
+def calculate_age(erov_s,serv,capture_time):
+    
     mu = 1 / serv
-    lambda1 = mu
-    num_events = 8000
+    lambda1 = 1/capture_time
+    num_events = 3000
 
     inter_arrival_times = 1 / lambda1 * np.log(1 / np.random.rand(num_events))
     arrival_timestamps = np.insert(np.cumsum(inter_arrival_times[:-1]), 0, 0)
@@ -66,15 +66,18 @@ def calculate_age(erov_s):
         departure_timestamps_new.append(departure_timestamps[-1])
 
     age_simulation = av_age_func(departure_timestamps_new, arrival_timestamps_new, serv)
-    erov = erov_s
-    age_theory = (1 / (lambda1 * (1 - erov))) + (1 / ((1 - erov) * mu)) + ((lambda1) / (((mu) + lambda1) * (mu)))
+    age_theory = (1 / (lambda1 * (1 - erov_s))) + (1 / ((1 - erov_s) * mu)) + ((lambda1) / (((mu) + lambda1) * (mu)))
 
     return age_theory, age_simulation
 
-# Example usage:
-"""
-erov_s = 0
-age_theory, age_simulation = calculate_age(erov_s)
-print("Age Theory:", age_theory)
-print("Age Simulation:", age_simulation)
-"""
+def main():
+   erov_s = 0.2
+   serv = 8
+   capture_time=1
+   age_theory, age_simulation = calculate_age(erov_s,serv,capture_time)
+   print("Age Theory:", age_theory)
+   print("Age Simulation:", age_simulation)
+
+if __name__ == "__main__":
+    main()
+    

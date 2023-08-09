@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from deep import db_to_linear, test_accurcy, get_data
+from deep import  test_accurcy, get_data
 from age import calculate_age
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
@@ -12,7 +12,8 @@ symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 300
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
 #H = np.concatenate((np.arange(10, 101, 10), np.arange(101, 2000, 200)))
-H = np.arange(50, 151 , 50)
+#H = np.arange(50, 151 , 50)
+H=  np.array([10, 100, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
@@ -84,14 +85,22 @@ for f in range(1):
         alpha_1[j] = alpha_L[j] * t + alpha_NL[j] * (1 - t)
         l_gain = alpha_1[j] * Pw / No
         snr_value_db = 10 * np.log10(l_gain)
-        acuuracy = test_accurcy (snr_value_db, x_train, y_train, x_test, y_test)
+   
+        block_size = 8
+        acuuracy = test_accurcy (snr_value_db, x_train, y_train, x_test, y_test,block_size)
         mis_err=1-acuuracy
-        age_theory, age_sim= calculate_age (mis_err) 
+        symbol_time=1
+        serv=symbol_time*block_size
+        capture_time=1
+        age_theory, age_sim= calculate_age (mis_err,serv,capture_time) 
     
-        Approx1[f, j] = snr_value_db
-        Approx2[f, j] = snr_value_db
-plt.plot(H, Approx1[0, :], 'g--o', label='Suburban')
-plt.plot(H, Approx2[0, :], 'b-p', label='Suburban')
+    
+        Approx1[f, j] = age_theory
+        Approx2[f, j] = age_sim
+        #Approx1[f, j] = snr_value_db
+        #Approx2[f, j] = snr_value_db
+plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
+plt.plot(H, Approx2[0, :], 'b-p', label='Simulation')
 
 plt.xlabel('H')
 plt.ylabel('SNR')

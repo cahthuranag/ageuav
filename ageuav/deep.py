@@ -116,14 +116,12 @@ def main():
 
     plot_accuracy_vs_snr(snr_values_db, accuracy_results)
 
-def test_accurcy(snr_value_db, x_train, y_train, x_test, y_test):
-    block_size = 16
-    sim_num = 1
+def test_accurcy(snr_value_db, x_train, y_train, x_test, y_test,block_size):
+    sim_num = 6
     sim_acurracy = []
     for i in range(sim_num):
         classifier_model = build_autoencoder_classifier(snr_value_db,block_size)
-    
-        classifier_model.fit(x_train, y_train, epochs=1, batch_size=128, validation_data=(x_test, y_test))
+        classifier_model.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
         _, sim_acurracy_test = evaluate_classifier(classifier_model, x_test, y_test)
         sim_acurracy.append(sim_acurracy_test)
     classifier_test_accuracy = np.mean(sim_acurracy) 
@@ -149,12 +147,11 @@ def block_size():
         for i in range(number_of_eval):
              snr_value_db = 1
              classifier_model = build_autoencoder_classifier(snr_value_db, block_size_value)
-             classifier_model.fit(x_train, y_train, epochs=20, batch_size=128, validation_data=(x_test, y_test))
+             classifier_model.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
              _, classifier_test_accuracy_test = evaluate_classifier(classifier_model, x_test, y_test)
              classifier_test_accuracy_sim.append(classifier_test_accuracy_test)
         
         classifier_test_accuracy = np.mean(classifier_test_accuracy_sim)
-
         accuracy_results.append(classifier_test_accuracy)
     
     # plot accuracy vs block size
