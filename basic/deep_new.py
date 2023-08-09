@@ -37,15 +37,25 @@ x_test, y_test = get_data(test_folder)
 # Normalize the images
 x_train = x_train.astype('float32') / 255.
 x_test = x_test.astype('float32') / 255.
-
+# Define the blocklength
+blocklength = 16
 # Build the autoencoder model
 input_img = Input(shape=(128, 128, 3))  # Adjust the input shape based on your image size
 
 # Encoder layers
-encoded = Conv2D(16, (3, 3), activation='relu', padding='same')(input_img)
+encoded = Conv2D(128, (3, 3), activation='relu', padding='same')(input_img)
+encoded = Conv2D(128, (3, 3), activation='relu', padding='same')(encoded)
 encoded = MaxPooling2D((2, 2), padding='same')(encoded)
-encoded = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
+encoded = tf.keras.layers.Dropout(0.25)(encoded)
+encoded = Conv2D(256, (3, 3), activation='relu', padding='same')(input_img)
+encoded = Conv2D(256, (3, 3), activation='relu', padding='same')(encoded)
 encoded = MaxPooling2D((2, 2), padding='same')(encoded)
+encoded = tf.keras.layers.Dropout(0.25)(encoded)
+encoded = Flatten()(encoded)
+encoded = Dense(blocklength, activation='relu')(encoded)
+
+
+encoded=  Dense(blocklength, activation='relu')(encoded)
 
 # Function to convert SNR from dB to linear scale
 def db_to_linear(snr_db):
@@ -67,8 +77,9 @@ encoder = Model(inputs=input_img, outputs=encoded_with_awgn)  # Use the output w
 # Classifier model
 # Use the encoder output (classifier_input) directly as the input to the classifier
 classifier_input = encoder.output  # Use encoder output as the input to the classifier
-flatten = Flatten()(classifier_input) # Flatten the output
-classifier_output = Dense(2, activation='softmax')(flatten)  # Assuming 2 classes: fire and nofire
+#flatten = Flatten()(classifier_input) # Flatten the output
+classifier_output_1 = Dense(blocklength, activation='relu')(classifier_input)
+classifier_output = Dense(2, activation='softmax')(classifier_output_1)  # Assuming 2 classes: fire and nofire
 classifier_model = Model(inputs=encoder.input, outputs=classifier_output)  # Use encoder.input here
 classifier_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 summary = classifier_model.summary()

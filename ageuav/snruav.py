@@ -9,9 +9,10 @@ gamma = np.array([8, 15, 20, 47])
 neta_L = np.array([0.1, 1, 1.6, 2.3])
 neta_NL = np.array([21, 20, 23, 34])
 symbol = ['b--*', 'r:', 'g--+', 'c--o']
-D = 250
+D = 300
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
-H = np.concatenate((np.arange(10, 101, 20), np.arange(100, 700, 100)))
+#H = np.concatenate((np.arange(10, 101, 10), np.arange(101, 2000, 200)))
+H = np.arange(10, 20, 10)
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
@@ -58,7 +59,7 @@ for f in range(4):
 Approx1 = np.zeros((4, H.shape[0]))
 fr = 6e9
 Cs = 3e8
-No = 1e-13
+No = 1e-12
 Pw = 5e-3
 
 log_alpha_NL = np.zeros(len(H))

@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from skimage.transform import resize
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten, Lambda, Dropout, GaussianNoise
 from tensorflow.keras.models import Model
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
@@ -38,20 +38,35 @@ def classifier_with_snr(snr_value_db, x_train, y_train, x_test, y_test):
     x_train = x_train.astype('float32') / 255.
     x_test = x_test.astype('float32') / 255.
 
-    # Build the autoencoder model
+    tx_power = 1
     input_img = Input(shape=(128, 128, 3))  # Adjust the input shape based on your image size
 
-    # Encoder layers
+# Encoder layers
     encoded = Conv2D(16, (3, 3), activation='relu', padding='same')(input_img)
     encoded = MaxPooling2D((2, 2), padding='same')(encoded)
     encoded = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
     encoded = MaxPooling2D((2, 2), padding='same')(encoded)
-
-    # AWGN layer with linear scale value
+    encoded = Flatten()(encoded)
+    encoded = Dropout(0.5)(encoded)
+    encoded = Dense(16, activation='linear')(encoded)
+    encoded_power_normalized = Lambda(lambda x: x / np.sqrt(tx_power))(encoded)
+    
+    
+    
+    # Function to convert SNR from dB to linear scale
+    def db_to_linear(snr_db):
+        return 10 ** (snr_db / 10)
+    
+    # Define the SNR value in dB (adjust this as needed)
+    snr_value_db = 10
+    
+    # Convert SNR from dB to linear scale
     snr_value_linear = db_to_linear(snr_value_db)
-    awgn_layer = tf.keras.layers.GaussianNoise(stddev=np.sqrt(1.0 / snr_value_linear))
-    encoded_with_awgn = awgn_layer(encoded)
-
+    
+    # AWGN layer with linear scale value
+    awgn_layer = GaussianNoise(stddev=np.sqrt(1.0 / snr_value_linear))
+    encoded_with_awgn = awgn_layer(encoded_power_normalized)
+    
     # Encoder model
     encoder = Model(inputs=input_img, outputs=encoded_with_awgn)
 
@@ -88,9 +103,3 @@ def plot_confusion(y_true, y_pred, class_names):
     plt.ylabel('True Label')
     plt.show()
 
-# Example usage:
-snr_value_db = 10
-epochs = 20
-batch_size = 128
-accuracy = classifier_with_snr(snr_value_db, epochs=epochs, batch_size=batch_size)
-print("Accuracy at SNR =", snr_value_db, "dB:", accuracy)

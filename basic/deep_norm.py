@@ -4,12 +4,15 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from skimage.transform import resize
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Lambda, GaussianNoise
 from tensorflow.keras.models import Model
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from keras.layers import BatchNormalization
+from tensorflow.keras.layers import Dropout
+from keras import backend as K
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
@@ -39,6 +42,7 @@ x_train = x_train.astype('float32') / 255.
 x_test = x_test.astype('float32') / 255.
 
 # Build the autoencoder model
+tx_power = 1
 input_img = Input(shape=(128, 128, 3))  # Adjust the input shape based on your image size
 
 # Encoder layers
@@ -46,6 +50,12 @@ encoded = Conv2D(16, (3, 3), activation='relu', padding='same')(input_img)
 encoded = MaxPooling2D((2, 2), padding='same')(encoded)
 encoded = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
 encoded = MaxPooling2D((2, 2), padding='same')(encoded)
+encoded = Flatten()(encoded)
+encoded = Dropout(0.5)(encoded)
+encoded = Dense(16, activation='linear')(encoded)
+encoded_power_normalized = Lambda(lambda x: x / np.sqrt(tx_power))(encoded)
+
+
 
 # Function to convert SNR from dB to linear scale
 def db_to_linear(snr_db):
@@ -58,8 +68,8 @@ snr_value_db = 10
 snr_value_linear = db_to_linear(snr_value_db)
 
 # AWGN layer with linear scale value
-awgn_layer = tf.keras.layers.GaussianNoise(stddev=np.sqrt(1.0 / snr_value_linear))
-encoded_with_awgn = awgn_layer(encoded)
+awgn_layer = GaussianNoise(stddev=np.sqrt(1.0 / snr_value_linear))
+encoded_with_awgn = awgn_layer(encoded_power_normalized)
 
 # Encoder model
 encoder = Model(inputs=input_img, outputs=encoded_with_awgn)  # Use the output with AWGN for the encoder
@@ -67,14 +77,15 @@ encoder = Model(inputs=input_img, outputs=encoded_with_awgn)  # Use the output w
 # Classifier model
 # Use the encoder output (classifier_input) directly as the input to the classifier
 classifier_input = encoder.output  # Use encoder output as the input to the classifier
-flatten = Flatten()(classifier_input) # Flatten the output
-classifier_output = Dense(2, activation='softmax')(flatten)  # Assuming 2 classes: fire and nofire
+#flatten = Flatten()(classifier_input) # Flatten the output
+classifier_output = Dense(16, activation='relu')(classifier_input)  # Assuming 2 classes: fire and nofire
+classifier_output = Dense(2, activation='softmax')(classifier_output)  # Assuming 2 classes: fire and nofire
 classifier_model = Model(inputs=encoder.input, outputs=classifier_output)  # Use encoder.input here
 classifier_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 summary = classifier_model.summary()
 
 # Train the autoencoder and classifier together
-classifier_model.fit(x_train, y_train, epochs=2, batch_size=128, validation_data=(x_test, y_test))
+classifier_model.fit(x_train, y_train, epochs=20, batch_size=16, validation_data=(x_test, y_test))
 
 # Evaluate the classifier on test data (original images)
 classifier_test_loss, classifier_test_accuracy = classifier_model.evaluate(x_test, y_test, verbose=0)
