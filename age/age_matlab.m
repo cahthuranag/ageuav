@@ -27,7 +27,6 @@ er_indi= rand(1,1)>erov_s;
     end
 
 for i = 2:(num_events-1)
-   
     if arrival_timestamps(i) < departure_timestamps(i - 1) 
         departure_timestamps_new(i) = nan;
         arrival_timestamps_new(i) = nan;

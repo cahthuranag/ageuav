@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from deep import  test_accurcy, get_data
-from age import calculate_age
+from deep_fading import  test_accurcy, get_data, train
+from age import calculate_age, calculate_age_theory
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
 beta = np.array([750, 500, 300, 300])
@@ -11,17 +11,24 @@ neta_NL = np.array([21, 20, 23, 34])
 symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 300
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
-#H = np.concatenate((np.arange(10, 101, 10), np.arange(101, 2000, 200)))
+H = np.concatenate((np.arange(10, 101, 10), np.arange(101, 2000, 200)))
 #H = np.arange(50, 151 , 50)
-H=  np.array([10, 100, 1000])
+#H = np.linspace(10, 2000, num=30)
+#H=  np.array([10, 50, 250, 500, 800, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+#test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
 x_train, y_train = get_data(train_folder)
 x_test, y_test = get_data(test_folder)
 
-
+training = False
+train_snrdb = 10
+block_size = 16
+if training is True:
+   train_accuarcy= train(train_snrdb, block_size, x_train, y_train, x_test, y_test)
+   print(train_accuarcy)
 
 C_a = np.array([
     [9.34e-1, 2.30e-1, -2.25e-3, 1.86e-5],
@@ -60,10 +67,10 @@ for f in range(4):
 
 Approx1 = np.zeros((1, H.shape[0]))
 Approx2 = np.zeros((1, H.shape[0]))
-fr = 6e9
+fr = 5e9
 Cs = 3e8
-No = 1e-12
-Pw = 5e-3
+No = 1e-10
+Pw = 5e-1
 
 log_alpha_NL = np.zeros(len(H))
 log_alpha_L = np.zeros(len(H))
@@ -85,24 +92,26 @@ for f in range(1):
         alpha_1[j] = alpha_L[j] * t + alpha_NL[j] * (1 - t)
         l_gain = alpha_1[j] * Pw / No
         snr_value_db = 10 * np.log10(l_gain)
-   
+  
         block_size = 8
-        acuuracy = test_accurcy (snr_value_db, x_train, y_train, x_test, y_test,block_size)
+      
+        acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size)
         mis_err=1-acuuracy
         symbol_time=1
         serv=symbol_time*block_size
         capture_time=1
-        age_theory, age_sim= calculate_age (mis_err,serv,capture_time) 
-    
-    
+        #age_theory, age_sim= calculate_age (mis_err,serv,capture_time) 
+        age_theory= calculate_age_theory (mis_err,serv,capture_time)    
         Approx1[f, j] = age_theory
-        Approx2[f, j] = age_sim
+        #Approx2[f, j] = age_sim
+        #Approx1[f, j] = acuuracy
+        #Approx2[f, j] = acuuracy
         #Approx1[f, j] = snr_value_db
         #Approx2[f, j] = snr_value_db
 plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
-plt.plot(H, Approx2[0, :], 'b-p', label='Simulation')
+#plt.plot(H, Approx2[0, :], 'b-p', label='Simulation')
 
 plt.xlabel('H')
-plt.ylabel('SNR')
+plt.ylabel('Age of Information')
 plt.legend()
 plt.show()

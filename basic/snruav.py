@@ -86,7 +86,9 @@ for f in range(4):
         snr_value_db = 10 * np.log10(l_gain)
         acuuracy = classifier_with_snr(snr_value_db, x_train, y_train, x_test, y_test)
         mis_err=1-acuuracy
-        age_theory, age_sim= calculate_age (mis_err) 
+        serv=1
+        ca
+        age_theory, age_sim= calculate_age (mis_err,serv,capture_time)
     
         Approx1[f, j] = age_theory
         Approx2[f, j] = age_sim

@@ -29,7 +29,7 @@ def calculate_age(erov_s,serv,capture_time):
     
     mu = 1 / serv
     lambda1 = 1/capture_time
-    num_events = 3000
+    num_events = 50000
 
     inter_arrival_times = 1 / lambda1 * np.log(1 / np.random.rand(num_events))
     arrival_timestamps = np.insert(np.cumsum(inter_arrival_times[:-1]), 0, 0)
@@ -69,6 +69,12 @@ def calculate_age(erov_s,serv,capture_time):
     age_theory = (1 / (lambda1 * (1 - erov_s))) + (1 / ((1 - erov_s) * mu)) + ((lambda1) / (((mu) + lambda1) * (mu)))
 
     return age_theory, age_simulation
+
+def calculate_age_theory(erov_s,serv,capture_time):
+    mu = 1 / serv
+    lambda1 = 1/capture_time
+    age_theory = (1 / (lambda1 * (1 - erov_s))) + (1 / ((1 - erov_s) * mu)) + ((lambda1) / (((mu) + lambda1) * (mu)))
+    return age_theory
 
 def main():
    erov_s = 0.2
