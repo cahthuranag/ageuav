@@ -363,11 +363,10 @@ def main():
 
     plot_accuracy_vs_snr(snr_values_db, accuracy_results)
 
-def test_accurcy(snr_value_db, x_test, y_test,block_size):
+def test_accurcy(snr_value_db, x_test, y_test, block_size):
     sim_num = 1
     sim_acurracy = []
     for _ in range(sim_num):
-        block_size = 16
         classifer_test = build_model(snr_value_db, block_size)
         classifer_test.load_weights('classifier_model_weights.h5')
         _, sim_acurracy_test = evaluate_classifier(classifer_test, x_test, y_test)

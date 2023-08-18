@@ -23,11 +23,11 @@ test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-fee
 x_train, y_train = get_data(train_folder)
 x_test, y_test = get_data(test_folder)
 
-training = False
+training = True
 train_snrdb = 10
 block_size = 16
 if training is True:
-   train_accuarcy= train(train_snrdb, block_size, x_train, y_train, x_test, y_test)
+   train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size)
    print(train_accuarcy)
 
 C_a = np.array([
@@ -92,8 +92,6 @@ for f in range(1):
         alpha_1[j] = alpha_L[j] * t + alpha_NL[j] * (1 - t)
         l_gain = alpha_1[j] * Pw / No
         snr_value_db = 10 * np.log10(l_gain)
-  
-        block_size = 8
       
         acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size)
         mis_err=1-acuuracy
@@ -108,10 +106,11 @@ for f in range(1):
         #Approx2[f, j] = acuuracy
         #Approx1[f, j] = snr_value_db
         #Approx2[f, j] = snr_value_db
-plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
+#plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
+plt.plot(H, Approx1[0, :], 'g--o', label='block length =16')
 #plt.plot(H, Approx2[0, :], 'b-p', label='Simulation')
 
 plt.xlabel('H')
-plt.ylabel('Age of Information')
+plt.ylabel('AAoMI')
 plt.legend()
 plt.show()
