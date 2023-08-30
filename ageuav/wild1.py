@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from deep_fading import  test_accurcy, get_data, train
+from deep_fading_work import  test_accurcy, get_data, train
 from age import calculate_age, calculate_age_theory
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
@@ -11,15 +11,15 @@ neta_NL = np.array([21, 20, 23, 34])
 symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 1500
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
-#H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 100), np.arange(201, 4000, 500)))
+H = np.concatenate((np.linspace(10, 500, num=20), np.linspace(501, 5000, num=20)))
 #H = np.arange(50, 151 , 50)
 #H = np.linspace(10, 4000, num=10)
-H = np.concatenate((np.linspace(10, 150, num=10),np.linspace(151, 500, num=1), np.linspace(501, 5000, num=5)))
+#H = np.concatenate((np.linspace(10, 150, num=10),np.linspace(151, 500, num=1), np.linspace(501, 5000, num=5)))
 #H=  np.array([10, 50, 250, 500, 800, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
-#test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
+#test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
 
 x_test, y_test = get_data(test_folder)
@@ -29,7 +29,7 @@ block_size = 8
 train_K=10
 if training is True:
    x_train, y_train = get_data(train_folder)
-   train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size,train_K)
+   train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size)
    print(train_accuarcy)
 
 C_a = np.array([
@@ -96,7 +96,7 @@ for f in range(1):
         l_gain = alpha_1[j] * Pw / No
         snr_value_db = 10 * np.log10(l_gain)
       
-        acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size,K)
+        acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size)
         #mis_err=1-acuuracy
         #symbol_time=1
         #serv=symbol_time*block_size

@@ -215,7 +215,7 @@ def build_model(snrdb,blocksize,ric_K):
     print("channel_snr: {}".format(snr_value_db))
     noise_stddev = np.sqrt(10 ** (-snr_value_db / 10))
     
-    channel_type = "fading"
+    channel_type = "rician_fading"
   
     # Add channel noise
     if channel_type == "awgn":
@@ -227,7 +227,7 @@ def build_model(snrdb,blocksize,ric_K):
         z_out = real_awgn(z_in, noise_stddev)
         h = tf.ones_like(z_in)  # h just makes sense on fading channels
 
-    elif channel_type == "fading":
+    elif channel_type == "rician_fading":
         dim_z = tf.shape(z)[1] // 2
         # convert z to complex representation
         z_in = tf.complex(z[:, :dim_z], z[:, dim_z:])
@@ -252,7 +252,7 @@ def build_model(snrdb,blocksize,ric_K):
         z_in = z_in * tf.complex(
             tf.sqrt(tf.cast(dim_z, dtype=tf.float32) / z_norm), 0.0
         )
-        z_out, h = rician_fading(z_in, noise_stddev,ric_K)
+        z_out, h = fading(z_in, noise_stddev)
         # convert back to real
         z_out = tf.concat([tf.math.real(z_out), tf.math.imag(z_out)], 1)
 
@@ -306,9 +306,9 @@ def plot_confusion_matrix(y_true, y_pred, class_names):
 
 def plot_accuracy_vs_snr(snr_values_db, accuracy_results):
     plt.plot(snr_values_db, accuracy_results, marker='o')
-    plt.xlabel('SNR (dB)')
-    plt.ylabel('Accuracy')
-    plt.title('Accuracy as a function of SNR')
+    plt.xlabel('SNR (dB)',fontsize=14)
+    plt.ylabel('Classficaiton accuracy',fontsize=14) #classficaiton accuracy
+    #plt.title('Accuracy as a function of SNR')
     plt.grid(True)
     plt.show()
 
@@ -332,6 +332,7 @@ def main():
     sim_num = 1
     snr_values_db = np.linspace(-20,20 , num=10) # Define your SNR values here
     sim_acurracy = []
+
     train_snrdb = 20
     block_size = 16
     classifier_model = build_model(train_snrdb,block_size,ric_K=0.5)
@@ -342,9 +343,9 @@ def main():
     
     # Save the trained weights
     #delete the file if it already exists
-    if os.path.exists('classifier_model_weights.h5'):
-        os.remove('classifier_model_weights.h5')
-    classifier_model.save_weights('classifier_model_weights.h5')
+    if os.path.exists('classifier_model_weights_snr.h5'):
+        os.remove('classifier_model_weights_snr.h5')
+    classifier_model.save_weights('classifier_model_weights_snr.h5')
     classifier_train_loss, classifier_train_accuracy = classifier_model.evaluate(x_test, y_test, verbose=1)
     print("Classifier Train Loss:", classifier_train_loss)
     print("Classifier Train Accuracy:", classifier_train_accuracy)
@@ -355,7 +356,7 @@ def main():
         for _ in range(sim_num):
             block_size = 16
             classifer_test = build_model(snr_value_db, block_size,ric_K=0.5)
-            classifer_test.load_weights('classifier_model_weights.h5')
+            classifer_test.load_weights('classifier_model_weights_snr.h5')
             _, sim_acurracy_tet = evaluate_classifier(classifer_test, x_test, y_test)
             sim_acurracy.append(sim_acurracy_tet)
             

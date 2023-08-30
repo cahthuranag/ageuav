@@ -12,7 +12,7 @@ symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 1500
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
 #H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 10), np.arange(201, 5000, 200)))
-H = np.concatenate((np.linspace(10, 500, num=10), np.linspace(501, 5000, num=10)))
+H = np.concatenate((np.linspace(10, 500, num=20), np.linspace(501, 5000, num=20)))
 #H = np.arange(50, 151 , 50)
 #H = np.linspace(10, 2000, num=30)
 #H=  np.array([10, 50, 250, 500, 800, 1000])
