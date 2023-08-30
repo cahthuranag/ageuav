@@ -57,7 +57,7 @@ def fading(x, stddev):
 
     return (h * x + stddev * awgn), h
 
-def rician_fading(x, stddev):
+def rician_fading(x, stddev,ric_K):
     """Implements the Rician fading channel with multiplicative fading,
     additive white Gaussian noise, and a line-of-sight (LOS) component.
     Args:
@@ -69,7 +69,7 @@ def rician_fading(x, stddev):
         h: channel gains (complex)
     """
     # Generate LOS component with magnitude K
-    K = 10
+    K=ric_K
     los_magnitude = np.sqrt(K / (K + 1))
     los_phase = tf.random.uniform([tf.shape(x)[0], 1], 0, 2 * np.pi)
     los = tf.complex(los_magnitude * tf.cos(los_phase), los_magnitude * tf.sin(los_phase))
@@ -128,7 +128,7 @@ def get_data(folder):
             for image_filename in tqdm(os.listdir(os.path.join(folder, folderName))):
                 img_file = cv2.imread(os.path.join(folder, folderName, image_filename))
                 if img_file is not None:
-                    img_file = resize(img_file, (128, 128, 3), mode="constant", anti_aliasing=True)
+                    img_file = resize(img_file, (256, 256, 3), mode="constant", anti_aliasing=True)
                     img_arr = np.asarray(img_file)
                     x.append(img_arr)
                     y.append(label)
@@ -139,10 +139,11 @@ def get_data(folder):
 # Build the autoencoder model
 
 
-def build_model(snrdb,blocksize):
-    input_img = Input(shape=(128, 128, 3))  # Adjust the input shape based on your image size
+def build_model(snrdb,blocksize,ric_K):
+    input_img = Input(shape=(256, 256, 3))  # Adjust the input shape based on your image size
     num_filters = 16
     conv_depth = blocksize
+    ric_K=ric_K
     # Encoder layers
     encoded = tfc.SignalConv2D(
                     num_filters,
@@ -166,6 +167,7 @@ def build_model(snrdb,blocksize):
                     activation=tfc.GDN(name="gdn_1"),
                 )(encoded)
     encoded = layers.PReLU(shared_axes=[1, 2])(encoded)
+    #encoded = Dropout(0.5)(encoded)
     encoded = tfc.SignalConv2D(
                     num_filters,
                     (5, 5),
@@ -215,6 +217,7 @@ def build_model(snrdb,blocksize):
     noise_stddev = np.sqrt(10 ** (-snr_value_db / 10))
     
     channel_type = "rician_fading"
+  
     # Add channel noise
     if channel_type == "awgn":
         dim_z = tf.shape(z)[1]
@@ -250,7 +253,7 @@ def build_model(snrdb,blocksize):
         z_in = z_in * tf.complex(
             tf.sqrt(tf.cast(dim_z, dtype=tf.float32) / z_norm), 0.0
         )
-        z_out, h = fading(z_in, noise_stddev)
+        z_out, h = rician_fading(z_in, noise_stddev,ric_K)
         # convert back to real
         z_out = tf.concat([tf.math.real(z_out), tf.math.imag(z_out)], 1)
 
@@ -312,8 +315,8 @@ def plot_accuracy_vs_snr(snr_values_db, accuracy_results):
 
 def main():
     train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-    #test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
-    test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
+    test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+    #test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
     x_train, y_train = get_data(train_folder)
     x_test, y_test = get_data(test_folder)
@@ -332,8 +335,8 @@ def main():
     sim_acurracy = []
     train_snrdb = 20
     block_size = 16
-    classifier_model = build_model(train_snrdb,block_size)
-    classifier_model.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
+    classifier_model = build_model(train_snrdb,block_size,ric_K=0.5)
+    classifier_model.fit(x_train, y_train, epochs=40, batch_size=128, validation_data=(x_test, y_test))
     #print the model summary
     classifier_model.summary()
     
@@ -343,7 +346,7 @@ def main():
     if os.path.exists('classifier_model_weights.h5'):
         os.remove('classifier_model_weights.h5')
     classifier_model.save_weights('classifier_model_weights.h5')
-    classifier_train_loss, classifier_train_accuracy = classifier_model.evaluate(x_test, y_test, verbose=0)
+    classifier_train_loss, classifier_train_accuracy = classifier_model.evaluate(x_test, y_test, verbose=1)
     print("Classifier Train Loss:", classifier_train_loss)
     print("Classifier Train Accuracy:", classifier_train_accuracy)
     
@@ -352,7 +355,7 @@ def main():
         
         for _ in range(sim_num):
             block_size = 16
-            classifer_test = build_model(snr_value_db, block_size)
+            classifer_test = build_model(snr_value_db, block_size,ric_K=0.5)
             classifer_test.load_weights('classifier_model_weights.h5')
             _, sim_acurracy_tet = evaluate_classifier(classifer_test, x_test, y_test)
             sim_acurracy.append(sim_acurracy_tet)
@@ -363,18 +366,18 @@ def main():
 
     plot_accuracy_vs_snr(snr_values_db, accuracy_results)
 
-def test_accurcy(snr_value_db, x_test, y_test, block_size):
+def test_accurcy(snr_value_db, x_test, y_test, block_size,ric_k):
     sim_num = 1
     sim_acurracy = []
     for _ in range(sim_num):
-        classifer_test = build_model(snr_value_db, block_size)
+        classifer_test = build_model(snr_value_db, block_size,ric_k)
         classifer_test.load_weights('classifier_model_weights.h5')
         _, sim_acurracy_test = evaluate_classifier(classifer_test, x_test, y_test)
         sim_acurracy.append(sim_acurracy_test)
     classifier_test_accuracy = np.mean(sim_acurracy) 
     return classifier_test_accuracy
-def train (train_snrdb, x_train, y_train, x_test, y_test,block_size):
-       classifier_model = build_model(train_snrdb,block_size)
+def train (train_snrdb, x_train, y_train, x_test, y_test,block_size,ric_k):
+       classifier_model = build_model(train_snrdb,block_size,ric_k)
        classifier_model.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
        classifier_model.summary()
        if os.path.exists('classifier_model_weights.h5'):

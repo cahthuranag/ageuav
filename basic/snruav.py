@@ -75,6 +75,7 @@ for f in range(4):
     for j in range(H.shape[0]):
         theta1 = np.rad2deg(np.arctan(H[j] / D))
         t = 1 / (1 + (cof_a[f] * np.exp(-cof_b[f] * (theta1 - cof_a[f]))))
+        K=1 / ((cof_a[f] * np.exp(-cof_b[f] * (theta1 - cof_a[f]))))
         theta1 = np.degrees(np.arctan(H[j] / D))
         d1 = np.sqrt(H[j]**2 + D**2)
         log_alpha_NL[j] = 20 * np.log10(d1) + 20 * np.log10(4 * fr * np.pi / Cs) + neta_NL[f]
