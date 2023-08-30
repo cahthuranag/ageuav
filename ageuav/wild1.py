@@ -14,7 +14,7 @@ D = 1500
 #H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 100), np.arange(201, 4000, 500)))
 #H = np.arange(50, 151 , 50)
 #H = np.linspace(10, 4000, num=10)
-H = np.concatenate((np.linspace(10, 150, num=20),np.linspace(301, 500, num=3), np.linspace(501, 5000, num=5)))
+H = np.concatenate((np.linspace(10, 150, num=10),np.linspace(151, 500, num=1), np.linspace(501, 5000, num=5)))
 #H=  np.array([10, 50, 250, 500, 800, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
@@ -116,7 +116,7 @@ plt.plot(H, Approx1[0, :], 'b--o')
 font_family = 'Times New Roman'
 plt.xlabel(' UAV Height (H) [m]',fontname=font_family,fontsize=14)
 plt.ylabel('Classfication accuracy',fontname=font_family,fontsize=14)
-plt.legend()
+#plt.legend()
 plt.grid(True)
 #plt.xscale('log')
 plt.show()
