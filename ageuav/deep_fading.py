@@ -167,7 +167,6 @@ def build_model(snrdb,blocksize,ric_K):
                     activation=tfc.GDN(name="gdn_1"),
                 )(encoded)
     encoded = layers.PReLU(shared_axes=[1, 2])(encoded)
-    #encoded = Dropout(0.5)(encoded)
     encoded = tfc.SignalConv2D(
                     num_filters,
                     (5, 5),
@@ -216,7 +215,7 @@ def build_model(snrdb,blocksize,ric_K):
     print("channel_snr: {}".format(snr_value_db))
     noise_stddev = np.sqrt(10 ** (-snr_value_db / 10))
     
-    channel_type = "rician_fading"
+    channel_type = "fading"
   
     # Add channel noise
     if channel_type == "awgn":

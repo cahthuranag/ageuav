@@ -11,10 +11,10 @@ neta_NL = np.array([21, 20, 23, 34])
 symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 1500
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
-#H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 10), np.arange(201, 5000, 200)))
-H = np.concatenate((np.linspace(10, 500, num=10), np.linspace(501, 5000, num=5)))
+#H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 100), np.arange(201, 4000, 500)))
 #H = np.arange(50, 151 , 50)
-#H = np.linspace(10, 2000, num=30)
+#H = np.linspace(10, 4000, num=10)
+H = np.concatenate((np.linspace(10, 150, num=20),np.linspace(301, 500, num=3), np.linspace(501, 5000, num=5)))
 #H=  np.array([10, 50, 250, 500, 800, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
@@ -22,12 +22,11 @@ test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-fee
 #test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
 
-#x_test, y_test = get_data(test_folder)
-
+x_test, y_test = get_data(test_folder)
 training = False
 train_snrdb = 10
 block_size = 8
-train_K=0.5
+train_K=10
 if training is True:
    x_train, y_train = get_data(train_folder)
    train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size,train_K)
@@ -97,7 +96,7 @@ for f in range(1):
         l_gain = alpha_1[j] * Pw / No
         snr_value_db = 10 * np.log10(l_gain)
       
-        #acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size,K)
+        acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size,K)
         #mis_err=1-acuuracy
         #symbol_time=1
         #serv=symbol_time*block_size
@@ -106,18 +105,18 @@ for f in range(1):
         #age_theory= calculate_age_theory (mis_err,serv,capture_time)    
         #Approx1[f, j] = age_theory
         #Approx2[f, j] = age_sim
-        Approx1[f, j] = snr_value_db
+        Approx1[f, j] = acuuracy
         #Approx2[f, j] = acuuracy
         #Approx1[f, j] = snr_value_db
         #Approx2[f, j] = snr_value_db
 #plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
-plt.plot(H, Approx1[0, :], 'g--o')
+plt.plot(H, Approx1[0, :], 'b--o')
 #plt.plot(H, Approx2[0, :], 'b-p', label='Simulation')
-font_family = "Times New Roman"
+#classfication accuracy
+font_family = 'Times New Roman'
 plt.xlabel(' UAV Height (H) [m]',fontname=font_family,fontsize=14)
-plt.ylabel('Average SNR (dB)',fontname=font_family,fontsize=14)
+plt.ylabel('Classfication accuracy',fontname=font_family,fontsize=14)
 plt.legend()
 plt.grid(True)
 #plt.xscale('log')
 plt.show()
-
