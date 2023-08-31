@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from deep_fading import  test_accurcy, get_data, train
+from deep_fading_work import  test_accurcy, get_data, train
 from age import calculate_age, calculate_age_theory
 
 alpha = np.array([0.1, 0.3, 0.5, 0.5])
@@ -12,25 +12,25 @@ symbol = ['b--*', 'r:', 'g--+', 'c--o']
 D = 1500
 #H = np.concatenate((np.arange(10, 101, 100), np.arange(100, 3 * D + 1, 1000)))
 #H = np.concatenate(( np.arange(10, 20, 5),np.arange(21, 200, 10), np.arange(201, 5000, 200)))
-H = np.concatenate((np.linspace(10, 500, num=20), np.linspace(501, 5000, num=20)))
+H = np.concatenate((np.linspace(10, 500, num=10), np.linspace(501, 5000, num=10)))
 #H = np.arange(50, 151 , 50)
 #H = np.linspace(10, 2000, num=30)
 #H=  np.array([10, 50, 250, 500, 800, 1000])
 # Load the dataset
 train_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
-test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
-#test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
+#test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Testing"
+test_folder = "/home/chathuranga_basnayaka/Desktop/my/semantic/wild/deepJSCC-feedback/wilddata/forest_fire/Training and Validation"
 
 
-#x_test, y_test = get_data(test_folder)
+x_test, y_test = get_data(test_folder)
 
 training = False
-train_snrdb = 10
+train_snrdb = 20
 block_size = 8
 train_K=0.5
 if training is True:
    x_train, y_train = get_data(train_folder)
-   train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size,train_K)
+   train_accuarcy= train(train_snrdb, x_train, y_train, x_test, y_test,block_size)
    print(train_accuarcy)
 
 C_a = np.array([
@@ -108,8 +108,10 @@ for f in range(1):
         snr_value_db = 10 * np.log10(l_gain)
         l_gain_2= alpha_1[j] * Pw2 / No
         snr_value_db_2 = 10 * np.log10(l_gain_2)
+        acuuracy_1 = test_accurcy(snr_value_db, x_test, y_test,block_size)
+        acuuracy_2 = test_accurcy(snr_value_db_2, x_test, y_test,block_size)
         
-        D1=500
+        D1=700
         fr_d = fr
         theta1_d = np.rad2deg(np.arctan(H[j] / D1))
         t_d = 1 / (1 + (cof_a[f] * np.exp(-cof_b[f] * (theta1_d - cof_a[f]))))
@@ -125,6 +127,8 @@ for f in range(1):
         snr_value_db_d = 10 * np.log10(l_gain_d)
         l_gain_2= alpha_1_d[j] * Pw2 / No
         snr_value_db_2_d = 10 * np.log10(l_gain_2)
+        acuuracy_3 = test_accurcy(snr_value_db_d, x_test, y_test,block_size)
+        acuuracy_4 = test_accurcy(snr_value_db_2_d, x_test, y_test,block_size)
       
         #acuuracy = test_accurcy(snr_value_db, x_test, y_test,block_size,K)
         #mis_err=1-acuuracy
@@ -135,20 +139,21 @@ for f in range(1):
         #age_theory= calculate_age_theory (mis_err,serv,capture_time)    
         #Approx1[f, j] = age_theory
         #Approx2[f, j] = age_sim
-        Approx1[f, j] = snr_value_db
-        Approx2[f, j] = snr_value_db_2
-        Approx3[f, j] = snr_value_db_d
-        Approx4[f, j] = snr_value_db_2_d
+        Approx1[f, j] = acuuracy_1
+        Approx2[f, j] = acuuracy_2
+        Approx3[f, j] = acuuracy_3
+        Approx4[f, j] = acuuracy_4
         #Approx1[f, j] = snr_value_db
         #Approx2[f, j] = snr_value_db
 #plt.plot(H, Approx1[0, :], 'g--o', label='Theory')
-plt.plot(H, Approx1[0, :], 'g--o', label='$P_w=30dBm, d_{G,U}=1500m$')
-plt.plot(H, Approx2[0, :], 'b-p', label='$P_w=27dBm,d_{G,U}=1500m$')
-plt.plot(H, Approx3[0, :], 'r', label='$P_w=30dBm,d_{G,U}=500m$')
-plt.plot(H, Approx4[0, :], 'orange', label='$P_w=27dBm,d_{G,U}=500m$')
+plt.plot(H, Approx1[0, :], color='g', linestyle='-', marker='o', label='$P_w=30dBm, d_{G,U}=1500m$')
+plt.plot(H, Approx2[0, :], color='b', linestyle='-', marker='p', label='$P_w=27dBm,d_{G,U}=1500m$')
+plt.plot(H, Approx3[0, :], color='r', linestyle='--', marker='o', label='$P_w=30dBm,d_{G,U}=750m$')
+plt.plot(H, Approx4[0, :], color='#FFA500', linestyle='--', marker='o', label='$P_w=27dBm,d_{G,U}=750m$')
+
 font_family = "Times New Roman"
 plt.xlabel(' UAV Height (H) [m]',fontname=font_family,fontsize=14)
-plt.ylabel('Average SNR (dB)',fontname=font_family,fontsize=14)
+plt.ylabel('Classfication accuracy',fontname=font_family,fontsize=14)
 plt.legend()
 plt.grid(True)
 #plt.xscale('log')
