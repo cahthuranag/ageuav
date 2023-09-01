@@ -339,8 +339,8 @@ def main():
     block_size = 8
     classifier_model = build_model(train_snrdb,block_size)
     classifier_model_2=build_model(train_snrdb_2,block_size)
-    classifier_model.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
-    classifier_model_2.fit(x_train, y_train, epochs=30, batch_size=128, validation_data=(x_test, y_test))
+    classifier_model.fit(x_train, y_train, epochs=150, batch_size=128, validation_data=(x_test, y_test))
+    classifier_model_2.fit(x_train, y_train, epochs=150, batch_size=128, validation_data=(x_test, y_test))
     #print the model summary
     #classifier_model.summary()
     
